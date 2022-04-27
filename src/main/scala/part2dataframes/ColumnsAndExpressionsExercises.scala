@@ -1,113 +1,66 @@
 package part2dataframes
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, column, expr}
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.sql.{SparkSession, functions}
+import org.apache.spark.sql.functions._
 
 object ColumnsAndExpressionsExercises extends App {
 
+  Logger.getRootLogger.setLevel(Level.WARN)
   val spark = SparkSession.builder()
-    .appName("DF Columns and Expressions")
+    .appName("Columns and Expressions Exercise")
     .config("spark.master", "local")
     .getOrCreate()
+
   spark.sparkContext.setLogLevel("OFF")
-  val path = "src/main/resources/data"
+  val path = "src/main/resources/data/movies.json"
 
-  val carsDF = spark.read
+  /**
+    * Exercises!
+    *
+    * 1. Read any two columns from the movies json
+    *
+    * 2. Create movies DF that sums gross profits: us, world, and dvd
+    *
+    * 3. Select comedy movies with IMDB rating >= 6.5
+    */
+
+    /* Schema
+    root
+     |-- Creative_Type: string (nullable = true)
+     |-- Director: string (nullable = true)
+     |-- Distributor: string (nullable = true)
+     |-- IMDB_Rating: double (nullable = true)
+     |-- IMDB_Votes: long (nullable = true)
+     |-- MPAA_Rating: string (nullable = true)
+     |-- Major_Genre: string (nullable = true)
+     |-- Production_Budget: long (nullable = true)
+     |-- Release_Date: string (nullable = true)
+     |-- Rotten_Tomatoes_Rating: long (nullable = true)
+     |-- Running_Time_min: long (nullable = true)
+     |-- Source: string (nullable = true)
+     |-- Title: string (nullable = true)
+     |-- US_DVD_Sales: long (nullable = true)
+     |-- US_Gross: long (nullable = true)
+     |-- Worldwide_Gross: long (nullable = true)
+
+     */
+
+  val moviesDf = spark.read
     .option("inferSchema", "true")
-    .json(s"$path/cars.json")
+    .json(path)
+  moviesDf.printSchema()
 
-  // Columns
-  val firstColumn = carsDF.col("Name")
+  val df1 = moviesDf.select("Title", "Director")
 
-  // selecting (projecting)
-  val carNamesDF = carsDF.select(firstColumn)
+  val df2 = moviesDf.groupBy("Title")
+    .sum("US_DVD_Sales", "US_Gross",  "Worldwide_Gross")
 
-  // various select methods
+  val df3 = moviesDf
+    .select("Title", "Major_Genre", "IMDB_Rating")
+    .filter("IMDB_Rating >= 6.5")
 
-  import spark.implicits._
-
-  carsDF.select(
-    carsDF.col("Name"),
-    col("Acceleration"),
-    column("Weight_in_lbs"),
-    'Year, // Scala symbol, auto-converted to column
-    $"Horsepower", // Fancier interpolated string, returns a column object
-    expr("Origin"), // EXPRESSION
-  )
-
-  // Select with plain column names. Can't' be mixed with the above methods
-  carsDF.select("Name", "Year")
-
-  // EXPRESSIONS
-  val simplestExpression = carsDF.col("Weight_in_lbs")
-  val weightInKgExpression = carsDF.col("Weight_in_lbs") / 2.2
-
-  val carsWithWeightsDf = carsDF.select(
-    col("Name"),
-    col("Weight_in_lbs"),
-    weightInKgExpression.as("weight_in_kg"),
-    expr("Weight_in_lbs / 2.2").as("weight_in_kg_expr")
-  )
-  carsWithWeightsDf.show()
-
-  // selectExpr
-  val carsWithSelectExprWeightsDf = carsDF.selectExpr(
-    "Name",
-    "Weight_in_lbs",
-    "Weight_in_lbs / 2.2"
-  )
-
-  // DF processing
-  val carsWithKg3Df = carsDF.withColumn("Weight_in_kg_3", expr("Weight_in_lbs / 2.2"))
-
-  val carsWithColumnRenamed = carsDF.withColumnRenamed("Weight_in_lbs", "Weight_in_pounds")
-  carsWithColumnRenamed.show()
-  // column names with spaces or hyphens need backticks
-  val carsWithColumnRenamed2 = carsDF.withColumnRenamed("Weight_in_lbs", "`Weight in pounds`")
-  carsWithColumnRenamed2.show()
-
-
-  // dropping/removing columns
-  carsWithColumnRenamed.drop("Cylinders", "Displacement").show()
-
-  // filtering -- used often in data engineering
-  println("\n\n\n**************Filtering**************")
-  carsDF.filter(col("Origin") =!= "USA").show()
-  carsDF.where(col("Origin") =!= "USA").show()
-
-  // filtering with expression strings
-  carsDF.filter("Origin = 'USA'").show()
-
-  // chaining filters
-  val americanPowerfulCars = carsDF
-    .filter(col("Origin") === "USA")
-    .filter(col("Horsepower") > 150)
-
-  // passing multiple filters
-  val americanPowerfulCars2 = carsDF
-    .filter(
-      (col("Origin") === "USA") and
-        (col("Horsepower") > 150)
-    )
-  val americanPowerfulCars3 = carsDF
-    .filter("Origin = 'USA'")
-
-
-  americanPowerfulCars.show()
-  americanPowerfulCars2.show()
-  americanPowerfulCars3.show()
-
-  // unioning -- adding more rows
-  val moreCarsDf = spark.read
-    .option("inferSchema", "true")
-    .json(s"$path/more_cars.json")
-
-  // only works if the two DFs have the same schema
-  val allCarsDf = carsDF.union(moreCarsDf)
-
-  // distinct values
-  val allCountriesDf = carsDF
-    .select("Origin")
-    .distinct()
-  allCountriesDf.show()
+  df1.show
+  df2.show
+  df3.show
 }
