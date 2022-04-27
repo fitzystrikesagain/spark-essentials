@@ -1,0 +1,18 @@
+{
+  "name": "sbt",
+  "version": "1.6.2",
+  "bspVersion": "2.0.0-M5",
+  "languages": [
+    "scala"
+  ],
+  "argv": [
+    "/Users/scott/.sdkman/candidates/java/11.0.11.j9-adpt/bin/java",
+    "-Xms100m",
+    "-Xmx100m",
+    "-classpath",
+    "/Users/scott/Library/Application Support/JetBrains/Toolbox/apps/IDEA-U/ch-1/221.5080.210/IntelliJ IDEA.app.plugins/Scala/launcher/sbt-launch.jar",
+    "xsbt.boot.Boot",
+    "-bsp",
+    "--sbt-launch-jar=/Users/scott/Library/Application%20Support/JetBrains/Toolbox/apps/IDEA-U/ch-1/221.5080.210/IntelliJ%20IDEA.app.plugins/Scala/launcher/sbt-launch.jar"
+  ]
+}
