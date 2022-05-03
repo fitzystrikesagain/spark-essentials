@@ -53,9 +53,9 @@ object Aggregations extends App {
   // average
   val avgRating = moviesDf
     .select(avg("Rotten_Tomatoes_Rating")
-      .as("avergate_rotten_tomatoes_rating"))
+      .as("average_rotten_tomatoes_rating"))
   val avgRatingExpr = moviesDf
-    .selectExpr("avg(Rotten_Tomatoes_Rating) as avergate_rotten_tomatoes_rating")
+    .selectExpr("avg(Rotten_Tomatoes_Rating) as average_rotten_tomatoes_rating")
 
   avgRating.show()
   avgRatingExpr.show()
