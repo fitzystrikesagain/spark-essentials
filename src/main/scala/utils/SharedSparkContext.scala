@@ -1,12 +1,16 @@
 package utils
 
-import org.apache.spark
 import org.apache.spark.sql.SparkSession
 
 object SharedSparkContext extends App {
-  val spark = SparkSession
-  .builder()
-    .appName("Shared Spark Context")
-    .config("spark.master", "local")
-    .getOrCreate()
+  def createSession(logLevel: String = "OFF"): SparkSession = {
+    val spark: SparkSession = SparkSession
+      .builder()
+      .appName("Shared Spark Context")
+      .config("spark.master", "local")
+      .getOrCreate()
+    spark.sparkContext.setLogLevel(logLevel)
+    spark
+  }
+
 }
